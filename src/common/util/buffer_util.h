@@ -39,46 +39,34 @@ inline uint64_t GetUint64FromBuf(const char *p) {
 
 // Store the uint32_t type as a small terminal in buf
 inline void SetBufFromUint32(char *p, uint32_t n) {
-  if constexpr (std::endian::native == std::endian::little) {
-    memcpy(p, &n, sizeof(n));
-  } else {
-    p[0] = (char)(n & 0xFF);
-    p[1] = (char)((n >> 8) & 0xFF);
-    p[2] = (char)((n >> 16) & 0xFF);
-    p[3] = (char)((n >> 24) & 0xFF);
-  }
+  // Use safe byte-by-byte access to avoid alignment issues
+  p[0] = (char)(n & 0xFF);
+  p[1] = (char)((n >> 8) & 0xFF);
+  p[2] = (char)((n >> 16) & 0xFF);
+  p[3] = (char)((n >> 24) & 0xFF);
 }
 
 // Retrieve the uint32_t type from buf in the form of a small terminal
 inline uint32_t GetUint32FromBuf(const char *p) {
-  if constexpr (std::endian::native == std::endian::little) {
-    return *((uint32_t *)p);
-  } else {
-    return (uint32_t)((uint8_t)(p[0])) +
-           ((uint32_t)((uint8_t)(p[1])) << 8) +
-           ((uint32_t)((uint8_t)(p[2])) << 16) +
-           ((uint32_t)((uint8_t)(p[3])) << 24);
-  }
+  // Use safe byte-by-byte access to avoid alignment issues
+  return (uint32_t)((uint8_t)(p[0])) +
+         ((uint32_t)((uint8_t)(p[1])) << 8) +
+         ((uint32_t)((uint8_t)(p[2])) << 16) +
+         ((uint32_t)((uint8_t)(p[3])) << 24);
 }
 
 // Store the uint16_t type as a small terminal in buf
 inline void SetBufFromUint16(char *p, uint16_t n) {
-  if constexpr (std::endian::native == std::endian::little) {
-    memcpy(p, &n, sizeof(n));
-  } else {
-    p[0] = (char)(n & 0xFF);
-    p[1] = (char)((n >> 8) & 0xFF);
-  }
+  // Use safe byte-by-byte access to avoid alignment issues
+  p[0] = (char)(n & 0xFF);
+  p[1] = (char)((n >> 8) & 0xFF);
 }
 
 // Retrieve the uint16_t type from buf in the form of a small terminal
 inline uint16_t GetUint16FromBuf(const char *p) {
-  if constexpr (std::endian::native == std::endian::little) {
-    return *((uint16_t *)p);
-  } else {
-    return (uint16_t)((uint8_t)(p[0])) +
-           ((uint16_t)((uint8_t)(p[1])) << 8);
-  }
+  // Use safe byte-by-byte access to avoid alignment issues
+  return (uint16_t)((uint8_t)(p[0])) +
+         ((uint16_t)((uint8_t)(p[1])) << 8);
 }
 
 enum class BufferLenType : size_t {
