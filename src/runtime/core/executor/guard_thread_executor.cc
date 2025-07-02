@@ -77,33 +77,43 @@ void GuardThreadExecutor::Initialize(YAML::Node options_node) {
         queue_.swap(tmp_queue);
       }
 
+      size_t tasks_executed = 0;
       while (!tmp_queue.empty()) {
         auto& task = tmp_queue.front();
 
         try {
           task();
-          --queue_task_num_;
+          ++tasks_executed;
         } catch (const std::exception& e) {
           AIMRT_FATAL("Guard thread executor run task get exception, {}", e.what());
+          ++tasks_executed;
         }
 
         tmp_queue.pop();
       }
+      
+      // Update counter after all tasks are processed to avoid race conditions
+      queue_task_num_ -= tasks_executed;
     }
 
     // Run once more after shutdown, no need for locks since no more tasks will enter the queue
+    size_t final_tasks_executed = 0;
     while (!queue_.empty()) {
       auto& task = queue_.front();
 
       try {
         task();
-        --queue_task_num_;
+        ++final_tasks_executed;
       } catch (const std::exception& e) {
         AIMRT_FATAL("Guard thread executor run task get exception, {}", e.what());
+        ++final_tasks_executed;
       }
 
       queue_.pop();
     }
+    
+    // Update counter for final cleanup tasks
+    queue_task_num_ -= final_tasks_executed;
 
     thread_id_ = std::thread::id();
   });

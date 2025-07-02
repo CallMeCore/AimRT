@@ -430,43 +430,13 @@ inline std::string& ReplaceString(std::string& str,
                                   std::string_view ov,
                                   std::string_view nv) {
   if (str.empty() || ov.empty()) return str;
-  std::vector<size_t> vec_pos;
-  size_t pos = 0, old_len = ov.size(), new_len = nv.size();
+  
+  size_t pos = 0;
   while ((pos = str.find(ov, pos)) != std::string::npos) {
-    vec_pos.emplace_back(pos);
-    pos += old_len;
+    str.replace(pos, ov.size(), nv);
+    pos += nv.size();
   }
-  size_t& vec_len = pos = vec_pos.size();
-  if (vec_len) {
-    if (old_len == new_len) {
-      for (size_t ii = 0; ii < vec_len; ++ii)
-        memcpy(const_cast<char*>(str.c_str() + vec_pos[ii]), nv.data(),
-               new_len);
-    } else if (old_len > new_len) {
-      char* p = const_cast<char*>(str.c_str()) + vec_pos[0];
-      vec_pos.emplace_back(str.size());
-      for (size_t ii = 0; ii < vec_len; ++ii) {
-        memcpy(p, nv.data(), new_len);
-        p += new_len;
-        size_t cplen = vec_pos[ii + 1] - vec_pos[ii] - old_len;
-        memmove(p, str.c_str() + vec_pos[ii] + old_len, cplen);
-        p += cplen;
-      }
-      str.resize(p - str.c_str());
-    } else {
-      size_t diff = new_len - old_len;
-      vec_pos.emplace_back(str.size());
-      str.resize(str.size() + diff * vec_len);
-      char* p = const_cast<char*>(str.c_str()) + str.size();
-      for (size_t ii = vec_len - 1; ii < vec_len; --ii) {
-        size_t cplen = vec_pos[ii + 1] - vec_pos[ii] - old_len;
-        p -= cplen;
-        memmove(p, str.c_str() + vec_pos[ii] + old_len, cplen);
-        p -= new_len;
-        memcpy(p, nv.data(), new_len);
-      }
-    }
-  }
+  
   return str;
 }
 
